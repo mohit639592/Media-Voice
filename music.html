@@ -13,6 +13,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <style>
@@ -175,24 +176,6 @@ body{
 
   width:18px;
   height:18px;
-
-  border-radius:50%;
-
-  background:cyan;
-
-  cursor:pointer;
-
-  box-shadow:
-  0 0 15px cyan;
-
-}
-
-#seekBar::-moz-range-thumb{
-
-  width:18px;
-  height:18px;
-
-  border:none;
 
   border-radius:50%;
 
@@ -462,38 +445,68 @@ let repeatMode = false;
 
 let currentData = null;
 
-/* LOAD SONG */
+let playlist = [];
+
+let currentIndex = 0;
+
+/* LOAD PLAYLIST */
 
 async function loadSong(){
 
   const snapshot =
+  await db.collection("media").get();
 
-  await db.collection("media")
-
-  .where("youtubeId","==",id)
-
-  .get();
+  playlist = [];
 
   snapshot.forEach((doc)=>{
 
-    currentData = doc.data();
-
-    document.getElementById("title")
-    .innerText = currentData.title;
-
-    document.getElementById("artist")
-    .innerText = currentData.artist;
-
-    document.getElementById("album")
-    .src = currentData.thumbnail;
-
-    document.getElementById("bg")
-    .style.backgroundImage =
-    `url('${currentData.thumbnail}')`;
-
-    setupMediaSession();
+    playlist.push(doc.data());
 
   });
+
+  currentIndex =
+  playlist.findIndex(
+    song => song.youtubeId === id
+  );
+
+  if(currentIndex < 0){
+
+    currentIndex = 0;
+
+  }
+
+  loadCurrentSong();
+
+}
+
+/* LOAD CURRENT SONG */
+
+function loadCurrentSong(){
+
+  currentData = playlist[currentIndex];
+
+  document.getElementById("title")
+  .innerText = currentData.title;
+
+  document.getElementById("artist")
+  .innerText = currentData.artist;
+
+  document.getElementById("album")
+  .src = currentData.thumbnail;
+
+  document.getElementById("bg")
+  .style.backgroundImage =
+  `url('${currentData.thumbnail}')`;
+
+  setupMediaSession();
+
+  if(player){
+
+    player.loadVideoById(
+      currentData.youtubeId
+    );
+
+  }
 
 }
 
@@ -630,22 +643,36 @@ function togglePlay(){
 
 }
 
-/* RESTART */
+/* PREVIOUS SONG */
 
 function restartSong(){
 
-  player.seekTo(0,true);
+  currentIndex--;
+
+  if(currentIndex < 0){
+
+    currentIndex =
+    playlist.length - 1;
+
+  }
+
+  loadCurrentSong();
 
 }
 
-/* FORWARD */
+/* NEXT SONG */
 
 function forwardSong(){
 
-  const current =
-  player.getCurrentTime();
+  currentIndex++;
 
-  player.seekTo(current + 10,true);
+  if(currentIndex >= playlist.length){
+
+    currentIndex = 0;
+
+  }
+
+  loadCurrentSong();
 
 }
 
@@ -660,7 +687,7 @@ function toggleRepeat(){
 
 }
 
-/* PLAYER END */
+/* SONG END */
 
 function onPlayerStateChange(event){
 
@@ -668,7 +695,15 @@ function onPlayerStateChange(event){
 
     if(repeatMode){
 
+      player.seekTo(0);
+
       player.playVideo();
+
+    }
+
+    else{
+
+      forwardSong();
 
     }
 
@@ -686,7 +721,8 @@ function shareSong(){
 
     text:'Listen on MEDIA X',
 
-    url:window.location.href
+    url:
+    `${window.location.origin}/music.html?id=${currentData.youtubeId}`
 
   });
 
@@ -739,6 +775,7 @@ function setupMediaSession(){
 loadSong();
 
 </script>
+
 <script>
 
 if("serviceWorker" in navigator){

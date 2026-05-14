@@ -1,404 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>MEDIA X</title>
+<meta charset="UTF-8"/>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0"/>
+
+<title>MEDIA X</title>
+
 <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:,">
-
-  <style>
-
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Arial,sans-serif;
-    }
-
-    body{
-      background:#050505;
-      color:white;
-      overflow-x:hidden;
-    }
-
-    body::before{
-      content:"";
-      position:fixed;
-      width:500px;
-      height:500px;
-      background:cyan;
-      filter:blur(180px);
-      opacity:0.08;
-      top:-200px;
-      left:-200px;
-      z-index:-1;
-    }
-
-    body::after{
-      content:"";
-      position:fixed;
-      width:400px;
-      height:400px;
-      background:#00ff99;
-      filter:blur(180px);
-      opacity:0.06;
-      bottom:-200px;
-      right:-200px;
-      z-index:-1;
-    }
-
-    .navbar{
-      width:100%;
-      padding:18px 22px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      position:sticky;
-      top:0;
-      z-index:100;
-      background:rgba(0,0,0,0.55);
-      backdrop-filter:blur(12px);
-      border-bottom:1px solid rgba(255,255,255,0.05);
-    }
-
-    .logo{
-      font-size:30px;
-      font-weight:bold;
-      color:#00ffff;
-      text-shadow:0 0 18px cyan;
-    }
-
-    .admin-btn{
-      padding:10px 18px;
-      border:none;
-      border-radius:50px;
-      background:#111;
-      color:cyan;
-      border:1px solid rgba(0,255,255,0.2);
-      cursor:pointer;
-      transition:0.3s;
-    }
-
-    .admin-btn:hover{
-      box-shadow:0 0 20px rgba(0,255,255,0.2);
-    }
-
-    .hero{
-      padding:70px 20px 40px;
-      text-align:center;
-    }
-
-    .hero h1{
-      font-size:65px;
-      color:#00ffff;
-      text-shadow:0 0 30px cyan;
-      margin-bottom:15px;
-    }
-
-    .hero p{
-      color:#999;
-      font-size:18px;
-    }
-
-    .search-box{
-      width:100%;
-      max-width:720px;
-      margin:35px auto 0;
-    }
-
-    .search-box input{
-      width:100%;
-      padding:18px 20px;
-      border:none;
-      outline:none;
-      border-radius:18px;
-      background:#101010;
-      color:white;
-      font-size:16px;
-      border:1px solid rgba(255,255,255,0.05);
-    }
-
-    .search-box input:focus{
-      border-color:cyan;
-      box-shadow:0 0 20px rgba(0,255,255,0.15);
-    }
-
-    .playlist-row{
-      display:flex;
-      gap:12px;
-      overflow-x:auto;
-      padding:10px 20px 30px;
-      scrollbar-width:none;
-    }
-
-    .playlist-row::-webkit-scrollbar{
-      display:none;
-    }
-
-    .playlist-btn{
-      min-width:max-content;
-      padding:12px 18px;
-      border-radius:50px;
-      background:#111;
-      color:#ccc;
-      border:1px solid rgba(255,255,255,0.05);
-      cursor:pointer;
-      transition:0.3s;
-    }
-
-    .playlist-btn:hover{
-      color:cyan;
-      border-color:rgba(0,255,255,0.2);
-      box-shadow:0 0 15px rgba(0,255,255,0.15);
-    }
-
-    .active-playlist{
-      background:cyan;
-      color:black;
-      font-weight:bold;
-    }
-
-    .media-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:22px;
-      padding:20px;
-    }
-
-    .card{
-      background:#0f0f0f;
-      border-radius:24px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,0.05);
-      transition:0.35s;
-      position:relative;
-    }
-
-    .card:hover{
-      transform:translateY(-5px);
-
-      box-shadow:
-      0 0 25px rgba(0,255,255,0.15),
-      0 0 45px rgba(0,255,255,0.08);
-    }
-
-    .thumb{
-      width:100%;
-      aspect-ratio:16/9;
-      object-fit:cover;
-      display:block;
-    }
-
-    .card-content{
-      padding:18px;
-    }
-
-    .title{
-      font-size:20px;
-      margin-bottom:8px;
-      color:white;
-    }
-
-    .artist{
-      color:#888;
-      font-size:14px;
-      margin-bottom:8px;
-    }
-
-    .playlist-name{
-      color:#00ffff;
-      font-size:13px;
-      margin-bottom:18px;
-    }
-
-    .btn-row{
-      display:flex;
-      gap:10px;
-    }
-
-    .play-btn{
-      flex:1;
-      padding:13px;
-      border:none;
-      border-radius:14px;
-      font-weight:bold;
-      cursor:pointer;
-      transition:0.3s;
-    }
-
-    .video-btn{
-      background:#00ffff;
-      color:black;
-    }
-
-    .audio-btn{
-      background:#00ff99;
-      color:black;
-    }
-
-    .play-btn:hover{
-      transform:scale(1.03);
-    }
-
-    .player-modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.85);
-      display:none;
-      justify-content:center;
-      align-items:center;
-      z-index:999;
-      padding:20px;
-    }
-
-    .player-box{
-      width:100%;
-      max-width:950px;
-      background:#111;
-      border-radius:20px;
-      overflow:hidden;
-      position:relative;
-
-      box-shadow:
-      0 0 40px rgba(0,255,255,0.2);
-    }
-
-    .close-btn{
-      position:absolute;
-      top:10px;
-      right:15px;
-      font-size:30px;
-      color:white;
-      cursor:pointer;
-      z-index:10;
-    }
-
-    .player-frame{
-      width:100%;
-      height:520px;
-    }
-
-    .mini-player{
-      position:fixed;
-      bottom:20px;
-      left:50%;
-      transform:translateX(-50%);
-      width:95%;
-      max-width:800px;
-
-      background:rgba(15,15,15,0.95);
-
-      border:1px solid rgba(0,255,255,0.1);
-
-      border-radius:22px;
-
-      padding:16px;
-
-      display:none;
-
-      align-items:center;
-      justify-content:space-between;
-
-      gap:12px;
-
-      backdrop-filter:blur(12px);
-
-      box-shadow:
-      0 0 30px rgba(0,255,255,0.15);
-
-      z-index:999;
-    }
-
-    .mini-left{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      flex:1;
-    }
-
-    .mini-thumb{
-      width:65px;
-      height:65px;
-      border-radius:14px;
-      object-fit:cover;
-    }
-
-    .mini-info h3{
-      font-size:16px;
-      margin-bottom:4px;
-    }
-
-    .mini-info p{
-      color:#888;
-      font-size:13px;
-    }
-
-    .controls{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .control-btn{
-      padding:12px 16px;
-      border:none;
-      border-radius:12px;
-      background:#00ffff;
-      color:black;
-      font-weight:bold;
-      cursor:pointer;
-      transition:0.3s;
-    }
-
-    .control-btn:hover{
-      transform:scale(1.05);
-    }
-
-    #youtube-player{
-      width:1px;
-      height:1px;
-      opacity:0;
-      position:absolute;
-    }
-
-    .loading{
-      text-align:center;
-      color:#00ffff;
-      font-size:20px;
-      padding:50px;
-    }
-
-    @media(max-width:700px){
-
-      .hero h1{
-        font-size:48px;
-      }
-
-      .player-frame{
-        height:260px;
-      }
-
-      .mini-player{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-
-      .controls{
-        width:100%;
-        justify-content:space-between;
-      }
-
-      .control-btn{
-        flex:1;
-      }
-
-    }
-
-  </style>
+
+<link rel="icon" href="data:,">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  background:#050505;
+  color:white;
+  overflow-x:hidden;
+}
+
+/* BACKGROUND */
+
+body::before{
+  content:"";
+  position:fixed;
+  width:600px;
+  height:600px;
+  background:cyan;
+  filter:blur(220px);
+  opacity:0.08;
+  top:-250px;
+  left:-250px;
+  z-index:-1;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  width:500px;
+  height:500px;
+  background:#00ff99;
+  filter:blur(220px);
+  opacity:0.05;
+  bottom:-250px;
+  right:-250px;
+  z-index:-1;
+}
+
+/* NAVBAR */
+
+.navbar{
+
+  width:100%;
+
+  padding:18px 24px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:999;
+
+  background:
+  rgba(0,0,0,0.55);
+
+  backdrop-filter:blur(14px);
+
+  border-bottom:
+  1px solid rgba(255,255,255,0.05);
+
+}
+
+.logo{
+
+  font-size:34px;
+
+  font-weight:bold;
+
+  color:#00ffff;
+
+  text-shadow:
+  0 0 20px cyan;
+
+}
+
+.admin-btn{
+
+  padding:12px 18px;
+
+  border:none;
+
+  border-radius:50px;
+
+  background:#101010;
+
+  color:cyan;
+
+  cursor:pointer;
+
+  font-weight:bold;
+
+  border:
+  1px solid rgba(0,255,255,0.2);
+
+  transition:0.3s;
+
+}
+
+.admin-btn:hover{
+
+  transform:translateY(-2px);
+
+  box-shadow:
+  0 0 18px rgba(0,255,255,0.2);
+
+}
+
+/* HERO */
+
+.hero{
+
+  padding:
+  80px 20px 45px;
+
+  text-align:center;
+
+}
+
+.hero h1{
+
+  font-size:78px;
+
+  color:#00ffff;
+
+  text-shadow:
+  0 0 35px cyan;
+
+  margin-bottom:15px;
+
+}
+
+.hero p{
+
+  color:#aaa;
+
+  font-size:19px;
+
+}
+
+/* SEARCH */
+
+.search-box{
+
+  width:100%;
+
+  max-width:780px;
+
+  margin:40px auto 0;
+
+  position:relative;
+
+}
+
+.search-box input{
+
+  width:100%;
+
+  padding:
+  20px 22px 20px 55px;
+
+  border:none;
+
+  outline:none;
+
+  border-radius:22px;
+
+  background:
+  rgba(15,15,15,0.95);
+
+  color:white;
+
+  font-size:16px;
+
+  border:
+  1px solid rgba(255,255,255,0.05);
+
+  transition:0.3s;
+
+}
+
+.search-box input:focus{
+
+  border-color:cyan;
+
+  box-shadow:
+  0 0 25px rgba(0,255,255,0.15);
+
+}
+
+.search-icon{
+
+  position:absolute;
+
+  left:20px;
+
+  top:50%;
+
+  transform:translateY(-50%);
+
+  color:#777;
+
+  font-size:18px;
+
+}
+
+/* PLAYLISTS */
+
+.playlist-row{
+
+  display:flex;
+
+  gap:12px;
+
+  overflow-x:auto;
+
+  padding:
+  10px 20px 35px;
+
+  scrollbar-width:none;
+
+}
+
+.playlist-row::-webkit-scrollbar{
+  display:none;
+}
+
+.playlist-btn{
+
+  min-width:max-content;
+
+  padding:12px 20px;
+
+  border-radius:50px;
+
+  background:#111;
+
+  color:#ccc;
+
+  cursor:pointer;
+
+  transition:0.3s;
+
+  border:
+  1px solid rgba(255,255,255,0.06);
+
+}
+
+.playlist-btn:hover{
+
+  color:cyan;
+
+  border-color:
+  rgba(0,255,255,0.25);
+
+  box-shadow:
+  0 0 18px rgba(0,255,255,0.12);
+
+}
+
+.active-playlist{
+
+  background:cyan;
+
+  color:black;
+
+  font-weight:bold;
+
+}
+
+/* GRID */
+
+.media-grid{
+
+  display:grid;
+
+  grid-template-columns:
+  repeat(auto-fit,minmax(320px,1fr));
+
+  gap:28px;
+
+  padding:25px;
+
+}
+
+/* CARD */
+
+.card{
+
+  background:
+  linear-gradient(
+    145deg,
+    rgba(20,20,20,0.96),
+    rgba(10,10,10,0.96)
+  );
+
+  border-radius:30px;
+
+  overflow:hidden;
+
+  border:
+  1px solid rgba(255,255,255,0.05);
+
+  transition:0.4s ease;
+
+  position:relative;
+
+  backdrop-filter:blur(10px);
+
+  animation:fadeUp 0.5s ease;
+
+}
+
+.card:hover{
+
+  transform:
+  translateY(-8px)
+  scale(1.02);
+
+  box-shadow:
+  0 0 30px rgba(0,255,255,0.18),
+  0 0 60px rgba(0,255,255,0.08);
+
+}
+
+@keyframes fadeUp{
+
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+}
+
+/* THUMB */
+
+.thumb{
+
+  width:100%;
+
+  aspect-ratio:16/9;
+
+  object-fit:cover;
+
+  display:block;
+
+  image-rendering:auto;
+
+}
+
+/* CONTENT */
+
+.card-content{
+  padding:20px;
+}
+
+.title{
+
+  font-size:22px;
+
+  color:white;
+
+  margin-bottom:10px;
+
+  display:-webkit-box;
+
+  -webkit-line-clamp:2;
+
+  -webkit-box-orient:vertical;
+
+  overflow:hidden;
+
+  min-height:55px;
+
+}
+
+.artist{
+
+  color:#aaa;
+
+  font-size:14px;
+
+  margin-bottom:10px;
+
+}
+
+.playlist-name{
+
+  color:#00ffff;
+
+  font-size:13px;
+
+  margin-bottom:20px;
+
+}
+
+/* BUTTONS */
+
+.btn-row{
+
+  display:flex;
+
+  gap:12px;
+
+}
+
+.play-btn{
+
+  flex:1;
+
+  padding:14px;
+
+  border:none;
+
+  border-radius:16px;
+
+  font-weight:bold;
+
+  cursor:pointer;
+
+  transition:0.3s;
+
+  font-size:15px;
+
+}
+
+.video-btn{
+
+  background:#00ffff;
+
+  color:black;
+
+}
+
+.audio-btn{
+
+  background:#00ff99;
+
+  color:black;
+
+}
+
+.play-btn:hover{
+
+  transform:scale(1.04);
+
+}
+
+/* LOADING */
+
+.loading{
+
+  text-align:center;
+
+  color:#00ffff;
+
+  font-size:22px;
+
+  padding:70px;
+
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+
+  .hero h1{
+    font-size:52px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .media-grid{
+
+    grid-template-columns:1fr;
+
+    padding:18px;
+
+  }
+
+  .card{
+    border-radius:25px;
+  }
+
+}
+
+</style>
 </head>
 <body>
+
+<!-- NAVBAR -->
 
 <div class="navbar">
 
@@ -407,13 +531,15 @@
   </div>
 
   <button class="admin-btn"
-    onclick="window.location.href='admin.html'">
+  onclick="window.location.href='admin.html'">
 
     Admin
 
   </button>
 
 </div>
+
+<!-- HERO -->
 
 <div class="hero">
 
@@ -423,7 +549,11 @@
     Futuristic Personal Streaming Platform
   </p>
 
+  <!-- SEARCH -->
+
   <div class="search-box">
+
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
 
     <input
       type="text"
@@ -435,9 +565,15 @@
 
 </div>
 
-<div class="playlist-row" id="playlistRow"></div>
+<!-- PLAYLISTS -->
 
-<div class="media-grid" id="mediaGrid">
+<div class="playlist-row"
+id="playlistRow"></div>
+
+<!-- MEDIA GRID -->
+
+<div class="media-grid"
+id="mediaGrid">
 
   <div class="loading">
     Loading Media...
@@ -445,78 +581,7 @@
 
 </div>
 
-<div class="player-modal" id="videoModal">
-
-  <div class="player-box">
-
-    <div class="close-btn"
-      onclick="closeVideo()">
-      ×
-    </div>
-
-    <iframe
-      id="videoFrame"
-      class="player-frame"
-      src=""
-      frameborder="0"
-      allowfullscreen
-      allow="autoplay">
-    </iframe>
-
-  </div>
-
-</div>
-
-<div class="mini-player" id="miniPlayer">
-
-  <div class="mini-left">
-
-    <img
-      src=""
-      id="miniThumb"
-      class="mini-thumb"
-    >
-
-    <div class="mini-info">
-
-      <h3 id="miniTitle">Playing...</h3>
-
-      <p id="miniArtist">Artist</p>
-
-    </div>
-
-  </div>
-
-  <div class="controls">
-
-    <button class="control-btn"
-      onclick="prevSong()">
-      ⏮
-    </button>
-
-    <button class="control-btn"
-      onclick="toggleRepeat()"
-      id="repeatBtn">
-      Repeat Off
-    </button>
-
-    <button class="control-btn"
-      onclick="nextSong()">
-      ⏭
-    </button>
-
-    <button class="control-btn"
-      onclick="stopAudio()">
-      ✕
-    </button>
-
-  </div>
-
-</div>
-
-<div id="youtube-player"></div>
-
-<script src="https://www.youtube.com/iframe_api"></script>
+<!-- FIREBASE -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 
@@ -524,16 +589,24 @@
 
 <script>
 
-
 const firebaseConfig = {
 
-  apiKey: "AIzaSyBFLZBEDU1SoYCdzOAqy58emc2v3HW_gRM",
-  authDomain: "media-x-104d2.firebaseapp.com",
-  projectId: "media-x-104d2",
-  storageBucket: "media-x-104d2.firebasestorage.app",
-  messagingSenderId: "763389190073",
-  appId: "1:763389190073:web:94d1de3ac9c2652e6fe068",
-  measurementId: "G-NR9RJJTE82"
+  apiKey: "YOUR_API_KEY",
+
+  authDomain:
+  "media-x-104d2.firebaseapp.com",
+
+  projectId:
+  "media-x-104d2",
+
+  storageBucket:
+  "media-x-104d2.firebasestorage.app",
+
+  messagingSenderId:
+  "763389190073",
+
+  appId:
+  "1:763389190073:web:94d1de3ac9c2652e6fe068"
 
 };
 
@@ -544,14 +617,6 @@ const db = firebase.firestore();
 let allMedia = [];
 
 let currentPlaylist = [];
-
-let currentIndex = 0;
-
-let repeatMode = false;
-
-let player;
-
-let playerReady = false;
 
 /* LOAD MEDIA */
 
@@ -592,7 +657,7 @@ async function loadMedia(){
 
         thumbnail:
         data.thumbnail ||
-        `https://img.youtube.com/vi/${data.youtubeId}/hqdefault.jpg`,
+        `https://img.youtube.com/vi/${data.youtubeId}/maxresdefault.jpg`,
 
         titleLower:
         (data.title || "").toLowerCase(),
@@ -621,9 +686,9 @@ async function loadMedia(){
     if(allMedia.length === 0){
 
       mediaGrid.innerHTML = `
-        <div class="loading">
-          No media found
-        </div>
+      <div class="loading">
+      No media found
+      </div>
       `;
 
     }
@@ -636,9 +701,9 @@ async function loadMedia(){
 
     document.getElementById("mediaGrid")
     .innerHTML = `
-      <div class="loading">
-        Failed to load media
-      </div>
+    <div class="loading">
+    Failed to load media
+    </div>
     `;
 
   }
@@ -660,21 +725,29 @@ function renderPlaylists(){
   )];
 
   playlistRow.innerHTML += `
+
     <div
-      class="playlist-btn active-playlist"
-      onclick="showAll(this)">
-      All
+    class="playlist-btn active-playlist"
+    onclick="showAll(this)">
+
+    All
+
     </div>
+
   `;
 
   playlists.forEach((playlist)=>{
 
     playlistRow.innerHTML += `
+
       <div
-        class="playlist-btn"
-        onclick="filterPlaylist('${playlist}',this)">
-        ${playlist}
+      class="playlist-btn"
+      onclick="filterPlaylist('${playlist}',this)">
+
+      ${playlist}
+
       </div>
+
     `;
 
   });
@@ -693,64 +766,71 @@ function renderMedia(data){
   if(data.length === 0){
 
     mediaGrid.innerHTML = `
-      <div class="loading">
-        No matching media found
-      </div>
+    <div class="loading">
+    No matching media found
+    </div>
     `;
 
     return;
 
   }
 
-  data.forEach((item,index)=>{
+  data.forEach((item)=>{
 
     mediaGrid.innerHTML += `
 
-      <div class="card">
+    <div class="card">
 
-        <img
-          class="thumb"
-          src="${item.thumbnail}"
-          onerror="this.src='https://via.placeholder.com/500x300?text=MEDIA+X'"
-        >
+      <img
+      class="thumb"
 
-        <div class="card-content">
+      src="${item.thumbnail}"
 
-          <div class="title">
-            ${item.title}
-          </div>
+      loading="lazy"
 
-          <div class="artist">
-            ${item.artist}
-          </div>
+      onerror="
+      this.onerror=null;
+      this.src='https://img.youtube.com/vi/${item.youtubeId}/hqdefault.jpg';
+      "
+      >
 
-          <div class="playlist-name">
-            ${item.playlist}
-          </div>
+      <div class="card-content">
 
-          <div class="btn-row">
+        <div class="title">
+        ${item.title}
+        </div>
 
-            <button
-            class="play-btn video-btn"
-            onclick="openVideo('${item.youtubeId}')">
+        <div class="artist">
+        ${item.artist}
+        </div>
 
-            Play Video
+        <div class="playlist-name">
+        ${item.playlist}
+        </div>
 
-            </button>
+        <div class="btn-row">
 
-            <button
-  class="play-btn audio-btn"
-  onclick="openMusic('${item.youtubeId}')">
+          <button
+          class="play-btn video-btn"
+          onclick="openVideo('${item.youtubeId}')">
 
-  Play Audio
+          Play Video
 
-</button>
+          </button>
 
-          </div>
+          <button
+          class="play-btn audio-btn"
+          onclick="openMusic('${item.youtubeId}')">
+
+          Play Audio
+
+          </button>
 
         </div>
 
       </div>
+
+    </div>
 
     `;
 
@@ -758,18 +838,25 @@ function renderMedia(data){
 
 }
 
-/* PLAYLIST FILTER */
+/* FILTER */
 
-window.filterPlaylist = function(name,element){
+window.filterPlaylist =
+function(name,element){
 
-  document.querySelectorAll(".playlist-btn")
+  document
+  .querySelectorAll(".playlist-btn")
+
   .forEach(btn=>{
 
-    btn.classList.remove("active-playlist");
+    btn.classList.remove(
+      "active-playlist"
+    );
 
   });
 
-  element.classList.add("active-playlist");
+  element.classList.add(
+    "active-playlist"
+  );
 
   const filtered =
   allMedia.filter(item =>
@@ -789,14 +876,20 @@ window.filterPlaylist = function(name,element){
 
 window.showAll = function(element){
 
-  document.querySelectorAll(".playlist-btn")
+  document
+  .querySelectorAll(".playlist-btn")
+
   .forEach(btn=>{
 
-    btn.classList.remove("active-playlist");
+    btn.classList.remove(
+      "active-playlist"
+    );
 
   });
 
-  element.classList.add("active-playlist");
+  element.classList.add(
+    "active-playlist"
+  );
 
   currentPlaylist = [...allMedia];
 
@@ -804,69 +897,11 @@ window.showAll = function(element){
 
 }
 
-/* VIDEO */
-
-window.openVideo = function(id){
-
-  window.location.href =
-  `video.html?id=${id}`;
-
-}
-
-window.closeVideo = function(){
-
-  document.getElementById("videoModal")
-  .style.display = "none";
-
-  document.getElementById("videoFrame").src = "";
-
-}
-
-/* YOUTUBE API */
-
-window.onYouTubeIframeAPIReady = function(){
-
-  player = new YT.Player("youtube-player",{
-
-    height:"1",
-    width:"1",
-
-    playerVars:{
-      autoplay:1
-    },
-
-    events:{
-
-      onReady:()=>{
-
-        playerReady = true;
-
-        console.log("Player Ready");
-
-      },
-
-      onStateChange:onPlayerStateChange
-
-    }
-
-  });
-
-}
-
-/* AUDIO */
-
-
-window.openMusic = function(id){
-
-  window.location.href =
-  `music.html?id=${id}`;
-
-}
-
 /* SEARCH */
 
 document
 .getElementById("searchInput")
+
 .addEventListener("input",(e)=>{
 
   const value =
@@ -891,6 +926,24 @@ document
 
 });
 
+/* OPEN VIDEO */
+
+window.openVideo = function(id){
+
+  window.location.href =
+  `video.html?id=${id}`;
+
+}
+
+/* OPEN MUSIC */
+
+window.openMusic = function(id){
+
+  window.location.href =
+  `music.html?id=${id}`;
+
+}
+
 /* START */
 
 loadMedia();
@@ -906,7 +959,9 @@ if("serviceWorker" in navigator){
 
   .then(()=>{
 
-    console.log("Service Worker Registered");
+    console.log(
+      "Service Worker Registered"
+    );
 
   });
 
