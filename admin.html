@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Media X Admin</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      background:#050505;
+      overflow-x:hidden;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+      position:relative;
+    }
+
+    body::before{
+      content:"";
+      position:absolute;
+      width:500px;
+      height:500px;
+      background:cyan;
+      filter:blur(180px);
+      opacity:0.15;
+      top:-150px;
+      left:-150px;
+      z-index:0;
+    }
+
+    body::after{
+      content:"";
+      position:absolute;
+      width:400px;
+      height:400px;
+      background:#00ff99;
+      filter:blur(180px);
+      opacity:0.08;
+      bottom:-150px;
+      right:-150px;
+      z-index:0;
+    }
+
+    .container{
+      width:100%;
+      max-width:520px;
+      background:rgba(20,20,20,0.85);
+      border:1px solid rgba(255,255,255,0.08);
+      backdrop-filter:blur(12px);
+      border-radius:25px;
+      padding:30px;
+      position:relative;
+      z-index:1;
+
+      box-shadow:
+      0 0 25px rgba(0,255,255,0.15),
+      0 0 60px rgba(0,255,255,0.08);
+    }
+
+    .top-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+    }
+
+    .badge{
+      background:#111;
+      padding:8px 14px;
+      border-radius:50px;
+      font-size:12px;
+      color:cyan;
+      border:1px solid rgba(0,255,255,0.2);
+    }
+
+    h1{
+      text-align:center;
+      margin-bottom:12px;
+      font-size:32px;
+      color:#00ffff;
+      text-shadow:0 0 15px cyan;
+    }
+
+    .subtitle{
+      text-align:center;
+      color:#999;
+      margin-bottom:25px;
+      font-size:14px;
+    }
+
+    .input-box{
+      margin-bottom:18px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      color:#ccc;
+      font-size:14px;
+    }
+
+    input, select{
+      width:100%;
+      padding:14px;
+      border:none;
+      outline:none;
+      border-radius:14px;
+      background:#111;
+      color:white;
+      border:1px solid rgba(255,255,255,0.06);
+      transition:0.3s;
+    }
+
+    input:focus,
+    select:focus{
+      border-color:cyan;
+      box-shadow:0 0 15px rgba(0,255,255,0.2);
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:15px;
+      background:linear-gradient(45deg,#00ffff,#00ff99);
+      color:black;
+      font-weight:bold;
+      cursor:pointer;
+      margin-top:10px;
+      transition:0.3s;
+      font-size:16px;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+      box-shadow:
+      0 0 25px rgba(0,255,255,0.4),
+      0 0 40px rgba(0,255,150,0.2);
+    }
+
+    #status{
+      text-align:center;
+      margin-top:18px;
+      color:#00ff99;
+      font-size:14px;
+    }
+
+    .preview{
+      margin-top:20px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.08);
+      display:none;
+    }
+
+    iframe{
+      width:100%;
+      height:250px;
+    }
+
+    @media(max-width:600px){
+
+      .container{
+        padding:22px;
+      }
+
+      h1{
+        font-size:26px;
+      }
+
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="top-bar">
+    <div class="badge">MEDIA X</div>
+    <div class="badge">ADMIN PANEL</div>
+  </div>
+
+  <h1>Upload Media</h1>
+
+  <p class="subtitle">
+    Add YouTube videos/music to Media X
+  </p>
+
+  <div class="input-box">
+    <label>Title</label>
+    <input type="text" id="title" placeholder="Namami Bhakta Vatsalam">
+  </div>
+
+  <div class="input-box">
+    <label>Media Type</label>
+
+    <select id="type">
+      <option value="video">Video</option>
+      <option value="audio">Audio</option>
+    </select>
+  </div>
+
+  <div class="input-box">
+    <label>Artist</label>
+    <input type="text" id="artist" placeholder="Guru Randhawa">
+  </div>
+
+  <div class="input-box">
+    <label>Playlist</label>
+    <input type="text" id="playlist" placeholder="Punjabi Hits">
+  </div>
+
+  <div class="input-box">
+    <label>Category</label>
+    <input type="text" id="category" placeholder="Bhajan / Romantic / Filmy">
+  </div>
+
+  <div class="input-box">
+    <label>Tags</label>
+    <input type="text" id="tags" placeholder="bhajan, calm, devotional">
+  </div>
+
+  <div class="input-box">
+    <label>YouTube URL</label>
+    <input
+      type="text"
+      id="youtubeUrl"
+      placeholder="https://youtube.com/watch?v=..."
+      oninput="showPreview()"
+    >
+  </div>
+
+  <div class="input-box">
+    <label>Thumbnail URL</label>
+    <input type="text" id="thumbnail" placeholder="https://image-url.com">
+  </div>
+
+  <button onclick="uploadMedia()">
+    Upload Media 🚀
+  </button>
+
+  <p id="status"></p>
+
+  <div class="preview" id="preview">
+    <iframe id="previewFrame"
+      src=""
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyBFLZBEDU1SoYCdzOAqy58emc2v3HW_gRM",
+  authDomain: "media-x-104d2.firebaseapp.com",
+  projectId: "media-x-104d2",
+  storageBucket: "media-x-104d2.firebasestorage.app",
+  messagingSenderId: "763389190073",
+  appId: "1:763389190073:web:94d1de3ac9c2652e6fe068",
+  measurementId: "G-NR9RJJTE82"
+
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+function getYoutubeId(url){
+
+  const regExp =
+  /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+
+  const match = url.match(regExp);
+
+  return (match && match[2].length === 11)
+  ? match[2]
+  : null;
+}
+
+
+window.showPreview = function(){
+
+  const url =
+  document.getElementById("youtubeUrl").value;
+
+  const id = getYoutubeId(url);
+
+  if(id){
+
+    document.getElementById("preview").style.display = "block";
+
+    document.getElementById("previewFrame").src =
+    `https://www.youtube.com/embed/${id}`;
+
+  }
+
+}
+
+
+window.uploadMedia = async function(){
+
+  const title =
+  document.getElementById("title").value;
+
+  const type =
+  document.getElementById("type").value;
+
+  const artist =
+  document.getElementById("artist").value;
+
+  const playlist =
+  document.getElementById("playlist").value;
+
+  const category =
+  document.getElementById("category").value;
+
+  const thumbnail =
+  document.getElementById("thumbnail").value;
+
+  const youtubeUrl =
+  document.getElementById("youtubeUrl").value;
+
+  const rawTags =
+  document.getElementById("tags").value;
+
+
+  const tags = rawTags
+  .split(",")
+  .map(tag => tag.trim().toLowerCase())
+  .filter(tag => tag !== "");
+
+
+  const youtubeId = getYoutubeId(youtubeUrl);
+
+
+  if(!youtubeId){
+
+    document.getElementById("status").innerText =
+    "Invalid YouTube URL";
+
+    return;
+
+  }
+
+
+  try{
+
+    await addDoc(collection(db,"media"),{
+
+      title,
+      titleLower: title.toLowerCase(),
+
+      type,
+
+      artist,
+      artistLower: artist.toLowerCase(),
+
+      playlist,
+      playlistLower: playlist.toLowerCase(),
+
+      category,
+      categoryLower: category.toLowerCase(),
+
+      tags,
+
+      youtubeId,
+
+      thumbnail,
+
+      createdAt: new Date()
+
+    });
+
+    document.getElementById("status").innerText =
+    "Media Uploaded Successfully 🚀";
+
+  }
+
+  catch(error){
+
+    document.getElementById("status").innerText =
+    error.message;
+
+  }
+
+}
+
+</script>
+<script>
+
+if("serviceWorker" in navigator){
+
+  navigator.serviceWorker
+  .register("service-worker.js")
+
+  .then(()=>{
+
+    console.log("Service Worker Registered");
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>

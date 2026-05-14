@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MEDIA X VIDEO</title>
+
+<style>
+
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:Arial;
+}
+
+.topbar{
+  padding:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#0a0a0a;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.logo{
+  color:cyan;
+  font-size:28px;
+  font-weight:bold;
+}
+
+.back-btn{
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  background:cyan;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.player-container{
+  width:100%;
+  max-width:1200px;
+  margin:auto;
+  padding:25px;
+}
+
+iframe{
+  width:100%;
+  height:70vh;
+  border:none;
+  border-radius:20px;
+}
+
+.controls{
+  margin-top:20px;
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+.control-btn{
+  padding:14px 20px;
+  border:none;
+  border-radius:14px;
+  background:#111;
+  color:cyan;
+  cursor:pointer;
+  border:1px solid rgba(0,255,255,0.15);
+}
+
+.control-btn:hover{
+  box-shadow:0 0 20px rgba(0,255,255,0.2);
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+
+<div class="logo">
+MEDIA X
+</div>
+
+<button class="back-btn"
+onclick="window.location.href='index.html'">
+Back
+</button>
+
+</div>
+
+<div class="player-container">
+
+<iframe
+id="videoFrame"
+allowfullscreen
+allow="autoplay">
+</iframe>
+
+<div class="controls">
+
+<button class="control-btn"
+onclick="goFullscreen()">
+Fullscreen
+</button>
+
+<button class="control-btn"
+onclick="reloadVideo()">
+Reload
+</button>
+
+<button class="control-btn"
+onclick="shareVideo()">
+Share
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const params =
+new URLSearchParams(window.location.search);
+
+const id = params.get("id");
+
+const frame =
+document.getElementById("videoFrame");
+
+frame.src =
+`https://www.youtube.com/embed/${id}?autoplay=1`;
+
+function goFullscreen(){
+
+  frame.requestFullscreen();
+
+}
+
+function reloadVideo(){
+
+  frame.src = frame.src;
+
+}
+
+function shareVideo(){
+
+  navigator.share({
+    title:"MEDIA X",
+    text:"Watch on MEDIA X",
+    url:window.location.href
+  });
+
+}
+
+</script>
+<script>
+
+if("serviceWorker" in navigator){
+
+  navigator.serviceWorker
+  .register("service-worker.js")
+
+  .then(()=>{
+
+    console.log("Service Worker Registered");
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>
+
+
+
