@@ -3,13 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-   <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.json">
 
-<meta name="theme-color" content="#00ffff">
+    <meta name="theme-color" content="#00ffff">
 
-<meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MEDIA X MUSIC</title>
@@ -242,6 +242,43 @@
             z-index: 1000;
             display: none;
         }
+        #voiceBtn{
+
+    width:60px;
+    height:60px;
+
+    border-radius:50%;
+
+    border:none;
+
+    background:#00e5ff;
+
+    color:#000;
+
+    font-size:24px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+#voiceBtn{
+
+    display:none;
+
+}
+
+#voiceBtn.listening{
+
+    background:#ff3b30;
+
+    color:white;
+
+    transform:scale(1.15);
+
+    box-shadow:0 0 25px red;
+
+}
     </style>
 </head>
 
@@ -279,6 +316,9 @@
                         class="fa-solid fa-pause"></i></button>
                 <button class="icon-btn" onclick="forwardSong()"><i class="fa-solid fa-forward-step"></i></button>
             </div>
+            <button id="voiceBtn" class="control-btn" onclick="startVoiceCommand()">
+    <i class="fa-solid fa-microphone"></i>
+</button>
 
             <div class="bottom-row">
                 <button class="small-btn" onclick="toggleRepeat()" id="repeatBtn"><i
@@ -308,57 +348,61 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+        const db = firebase.firestore();
 
-// URL parameter
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+        // URL parameter
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
 
-// Player
-let player;
+        // Player
+        const isMobile =
+/Android|iPhone|iPad/i.test(
+navigator.userAgent
+);
+        let player;
 
-// Playlist
-let playlist = [];
-let currentIndex = 0;
-let recognition = null;
-let currentVideoId = "";
-let currentData = null;
+        // Playlist
+        let playlist = [];
+        let currentIndex = 0;
+        let recognition = null;
+        let currentVideoId = "";
+        let currentData = null;
 
-// States
-let isPlaying = false;
-let isDrivingMode = false;
-
-
-
-let waitingForCommand = false;
+        // States
+        let isPlaying = false;
+        let isDrivingMode = false;
 
 
-// ================= LOAD SONGS =================
-async function loadSong() {
 
-    const snapshot = await db.collection("media").get();
+        let waitingForCommand = false;
 
-    playlist = [];
 
-    snapshot.forEach((doc) => {
-        playlist.push(doc.data());
-    });
+        // ================= LOAD SONGS =================
+        async function loadSong() {
 
-    if (playlist.length === 0)
-        return;
+            const snapshot = await db.collection("media").get();
 
-    // Find the clicked song from URL
-    currentIndex = playlist.findIndex(
-        song => song.youtubeId === id
-    );
+            playlist = [];
 
-    // If song not found (voice search etc.)
-    if (currentIndex < 0)
-        currentIndex = 0;
+            snapshot.forEach((doc) => {
+                playlist.push(doc.data());
+            });
 
-    loadCurrentSong();
+            if (playlist.length === 0)
+                return;
 
-}
+            // Find the clicked song from URL
+            currentIndex = playlist.findIndex(
+                song => song.youtubeId === id
+            );
+
+            // If song not found (voice search etc.)
+            if (currentIndex < 0)
+                currentIndex = 0;
+
+            loadCurrentSong();
+
+        }
 
         function loadCurrentSong() {
 
@@ -551,127 +595,209 @@ async function loadSong() {
 
         function toggleDrivingMode() {
 
-    isDrivingMode = !isDrivingMode;
+            isDrivingMode = !isDrivingMode;
 
-    const btn = document.getElementById("drivingBtn");
+            const btn = document.getElementById("drivingBtn");
+            if (isMobile) {
 
     if (isDrivingMode) {
 
         btn.classList.add("active");
         btn.innerHTML = '<i class="fa-solid fa-car"></i> ON';
 
-        speak("Driving mode activated");
+        document.getElementById("voiceBtn").style.display = "block";
 
-        startVoice();
+        speak("Driving mode activated.");
 
     } else {
 
         btn.classList.remove("active");
         btn.innerHTML = '<i class="fa-solid fa-car"></i> Drive';
 
-        if (recognition) {
-            recognition.stop();
+        document.getElementById("voiceBtn").style.display = "none";
+
+        speak("Driving mode disabled.");
+
+    }
+
+    return;
+
+}
+            if (isDrivingMode) {
+
+                btn.classList.add("active");
+                btn.innerHTML = '<i class="fa-solid fa-car"></i> ON';
+
+                speak("Driving mode activated");
+
+                startVoice();
+
+            } else {
+
+                btn.classList.remove("active");
+                btn.innerHTML = '<i class="fa-solid fa-car"></i> Drive';
+
+                if (recognition) {
+                    recognition.stop();
+                }
+
+                speak("Driving mode disabled");
+            }
         }
 
-        speak("Driving mode disabled");
-    }
-}
-        
 
         function startVoice() {
 
-    // Prevent multiple recognizers
-    if (recognition) {
-        return;
-    }
+            // Prevent multiple recognizers
+            if (recognition) {
+                return;
+            }
 
-    const SR =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+            const SR =
+                window.SpeechRecognition ||
+                window.webkitSpeechRecognition;
 
-    if (!SR) {
-        alert("Speech Recognition is not supported in this browser.");
-        return;
-    }
+            if (!SR) {
+                alert("Speech Recognition is not supported in this browser.");
+                return;
+            }
 
-    recognition = new SR();
+            recognition = new SR();
 
-    recognition.lang = "en-IN";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+            recognition.lang = "en-IN";
+            recognition.continuous = false;
+            recognition.interimResults = false;
 
-    recognition.onstart = () => {
+            recognition.onstart = () => {
 
-        console.log("🎤 Listening...");
+                console.log("🎤 Listening...");
 
-    };
+            };
 
-    recognition.onresult = (event) => {
+            recognition.onresult = (event) => {
 
-        console.log("RESULT RECEIVED");
+                console.log("RESULT RECEIVED");
 
-        let text = event.results[0][0].transcript
-            .toLowerCase()
-            .trim();
+                let text = event.results[0][0].transcript
+                    .toLowerCase()
+                    .trim();
 
-        console.log(text);
+                console.log(text);
 
-        // Accept common pronunciations
-        if (
-            text.startsWith("buddy") ||
-            text.startsWith("badi") ||
-            text.startsWith("body") ||
-            text.startsWith("budy")
-        ) {
+                // Accept common pronunciations
+                if (
+                    text.startsWith("buddy") ||
+                    text.startsWith("badi") ||
+                    text.startsWith("body") ||
+                    text.startsWith("budy")
+                ) {
 
-            text = text
-                .replace(/^buddy/, "")
-                .replace(/^badi/, "")
-                .replace(/^body/, "")
-                .replace(/^budy/, "")
-                .trim();
+                    text = text
+                        .replace(/^buddy/, "")
+                        .replace(/^badi/, "")
+                        .replace(/^body/, "")
+                        .replace(/^budy/, "")
+                        .trim();
 
-            processCommand(text);
+                    processCommand(text);
 
-        } else {
+                } else {
 
-            console.log("Wake word not found.");
+                    console.log("Wake word not found.");
+
+                }
+
+            };
+
+            recognition.onerror = (e) => {
+
+                console.log("Speech Error:", e.error);
+
+            };
+
+            recognition.onend = () => {
+
+                console.log("Recognition Ended");
+
+                recognition = null;
+
+                if (!isDrivingMode) return;
+
+                setTimeout(() => {
+
+                    startVoice();
+
+                }, 2500);
+
+            };
+
+            recognition.start();
 
         }
+        function startVoiceCommand(){
+
+    const SR =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+    if(!SR){
+
+        alert("Speech Recognition not supported.");
+
+        return;
+
+    }
+
+    const voiceRecognition = new SR();
+
+    voiceRecognition.lang = "en-IN";
+voiceRecognition.continuous = false;
+voiceRecognition.interimResults = false;
+
+    document
+    .getElementById("voiceBtn")
+    .classList.add("listening");
+
+    voiceRecognition.onresult=(event)=>{
+
+        let text=
+        event.results[0][0]
+        .transcript
+        .toLowerCase()
+        .trim();
+
+        text = text
+.replace(/^buddy/,"")
+.replace(/^badi/,"")
+.replace(/^body/,"")
+.replace(/^budy/,"")
+.trim();
+        console.log("Voice:",text);
+        
+
+        processCommand(text);
 
     };
 
-    recognition.onerror = (e) => {
+    voiceRecognition.onend=()=>{
 
-    console.log("Speech Error:", e.error);
+        document
+        .getElementById("voiceBtn")
+        .classList.remove("listening");
 
-    recognition = null;
+    };
 
-    if (!isDrivingMode) return;
+    voiceRecognition.onerror=(e)=>{
 
-    let delay = 1000;
+        console.log(e.error);
 
-    if (e.error === "no-speech") {
-        delay = 3000;
-    }
+        document
+        .getElementById("voiceBtn")
+        .classList.remove("listening");
 
-    setTimeout(startVoice, delay);
+    };
 
-};
-
-    recognition.onend = () => {
-
-    console.log("Recognition Ended");
-
-    recognition = null;
-
-    if (!isDrivingMode) return;
-
-    setTimeout(startVoice, 1000);
-
-};
-
-    recognition.start();
+    voiceRecognition.start();
 
 }
 
@@ -788,6 +914,11 @@ async function loadSong() {
                 );
 
                 if (player) {
+                    if (recognition) {
+
+                        recognition.stop();
+
+                    }
 
                     player.loadVideoById(currentVideoId);
 
@@ -830,18 +961,18 @@ async function loadSong() {
         loadSong();
         if ("serviceWorker" in navigator) {
 
-    window.addEventListener("load", () => {
+            window.addEventListener("load", () => {
 
-        navigator.serviceWorker
-            .register("/service-worker.js")
-            .then(() => console.log("Service Worker Registered"))
-            .catch(console.error);
+                navigator.serviceWorker
+                    .register("/service-worker.js")
+                    .then(() => console.log("Service Worker Registered"))
+                    .catch(console.error);
 
-    });
+            });
 
-}
+        }
     </script>
-    
+
 </body>
 
 </html>
