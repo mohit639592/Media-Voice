@@ -244,29 +244,36 @@
         }
         #voiceBtn{
 
-    width:60px;
-    height:60px;
+    position: fixed;
+
+    bottom: 100px;
+
+    right: 25px;
+
+    #voiceBtn{
+
+    width:55px;
+    height:55px;
 
     border-radius:50%;
 
-    border:none;
+    font-size:22px;
+
+}
 
     background:#00e5ff;
 
-    color:#000;
+    color:black;
 
-    font-size:24px;
+    font-size:28px;
 
-    cursor:pointer;
+    box-shadow:0 0 20px cyan;
 
-    transition:.3s;
+    z-index:9999;
 
-}
-#voiceBtn{
-
-    display:none;
 
 }
+
 
 #voiceBtn.listening{
 
@@ -309,16 +316,16 @@
                     <span id="duration">0:00</span>
                 </div>
             </div>
-
+<button id="voiceBtn" onclick="startVoiceCommand()">
+    🎤
+</button>
             <div class="controls">
                 <button class="icon-btn" onclick="restartSong()"><i class="fa-solid fa-backward-step"></i></button>
                 <button class="icon-btn play-btn" onclick="togglePlay()" id="playBtn"><i
                         class="fa-solid fa-pause"></i></button>
                 <button class="icon-btn" onclick="forwardSong()"><i class="fa-solid fa-forward-step"></i></button>
             </div>
-            <button id="voiceBtn" class="control-btn" onclick="startVoiceCommand()">
-    <i class="fa-solid fa-microphone"></i>
-</button>
+            
 
             <div class="bottom-row">
                 <button class="small-btn" onclick="toggleRepeat()" id="repeatBtn"><i
@@ -674,40 +681,26 @@ navigator.userAgent
 
             };
 
-            recognition.onresult = (event) => {
+            voiceRecognition.onresult = (event) => {
 
-                console.log("RESULT RECEIVED");
+    let text = event.results[0][0].transcript
+        .toLowerCase()
+        .trim();
 
-                let text = event.results[0][0].transcript
-                    .toLowerCase()
-                    .trim();
+    alert(text);          // <-- TEMPORARY
 
-                console.log(text);
+    console.log(text);
 
-                // Accept common pronunciations
-                if (
-                    text.startsWith("buddy") ||
-                    text.startsWith("badi") ||
-                    text.startsWith("body") ||
-                    text.startsWith("budy")
-                ) {
+    text = text
+        .replace(/^buddy/, "")
+        .replace(/^badi/, "")
+        .replace(/^body/, "")
+        .replace(/^budy/, "")
+        .trim();
 
-                    text = text
-                        .replace(/^buddy/, "")
-                        .replace(/^badi/, "")
-                        .replace(/^body/, "")
-                        .replace(/^budy/, "")
-                        .trim();
+    processCommand(text);
 
-                    processCommand(text);
-
-                } else {
-
-                    console.log("Wake word not found.");
-
-                }
-
-            };
+};
 
             recognition.onerror = (e) => {
 
