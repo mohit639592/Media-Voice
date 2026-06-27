@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+   <link rel="manifest" href="/manifest.json">
+
+<meta name="theme-color" content="#00ffff">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIA X MUSIC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial;
+        }
+
+        body {
+            background: black;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(45px);
+            transform: scale(1.2);
+            opacity: 0.22;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .player {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(15, 15, 15, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 35px;
+            padding: 28px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.12);
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .top-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 50%;
+            background: #111;
+            color: cyan;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .driving-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .driving-btn.active {
+            background: #00cc00;
+        }
+
+        .album {
+            width: 280px;
+            height: 280px;
+            display: block;
+            margin: auto;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            box-shadow: 0 0 45px rgba(0, 255, 255, 0.22);
+            animation: rotateAlbum 35s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .playing .album {
+            animation-play-state: running;
+        }
+
+        @keyframes rotateAlbum {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .title {
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .artist {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .progress-area {
+            margin-bottom: 30px;
+        }
+
+        #seekBar {
+            width: 100%;
+            appearance: none;
+            height: 6px;
+            border-radius: 20px;
+            background: #222;
+            outline: none;
+            cursor: pointer;
+        }
+
+        #seekBar::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: cyan;
+            cursor: pointer;
+            box-shadow: 0 0 15px cyan;
+        }
+
+        .time-row {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 13px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 22px;
+            margin-bottom: 30px;
+        }
+
+        .icon-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: #111;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .play-btn {
+            width: 85px;
+            height: 85px;
+            background: cyan;
+            color: black;
+            font-size: 28px;
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.35);
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .small-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .small-btn.active {
+            color: cyan;
+        }
+
+        #youtube-player {
+            position: fixed;
+            bottom: -999px;
+            right: -999px;
+        }
+
+        .speak-btn {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00ff00;
+            color: black;
+            border: none;
+            padding: 20px 50px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.7);
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg" id="bg"></div>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <div class="player" id="playerCard">
+
+            <div class="topbar">
+                <button class="top-btn" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i></button>
+                <h3>MEDIA X</h3>
+                <button class="top-btn driving-btn" id="drivingBtn" onclick="toggleDrivingMode()">
+                    <i class="fa-solid fa-car"></i> Drive
+                </button>
+            </div>
+
+            <img id="album" class="album" src="">
+            <div class="title" id="title">Loading...</div>
+            <div class="artist" id="artist">Artist</div>
+
+            <div class="progress-area">
+                <input type="range" id="seekBar" value="0" min="0" max="100">
+                <div class="time-row">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="icon-btn" onclick="restartSong()"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="icon-btn play-btn" onclick="togglePlay()" id="playBtn"><i
+                        class="fa-solid fa-pause"></i></button>
+                <button class="icon-btn" onclick="forwardSong()"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+
+            <div class="bottom-row">
+                <button class="small-btn" onclick="toggleRepeat()" id="repeatBtn"><i
+                        class="fa-solid fa-repeat"></i></button>
+                <button class="small-btn" onclick="shareSong()"><i class="fa-solid fa-share"></i></button>
+                <button class="small-btn" onclick="goHome()"><i class="fa-solid fa-house"></i></button>
+            </div>
+
+        </div>
+    </div>
+
+    <button class="speak-btn" id="speakBtn" onclick="startVoice()">
+        🎤 TAP & SPEAK
+    </button>
+
+    <div id="youtube-player"></div>
+
+    <script>
+        // ================== CONFIG ==================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "media-x-104d2.firebaseapp.com",
+            projectId: "media-x-104d2",
+            storageBucket: "media-x-104d2.firebasestorage.app",
+            messagingSenderId: "763389190073",
+            appId: "1:763389190073:web:94d1de3ac9c2652e6fe068"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// URL parameter
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+// Player
+let player;
+
+// Playlist
+let playlist = [];
+let currentIndex = 0;
+let recognition = null;
+let currentVideoId = "";
+let currentData = null;
+
+// States
+let isPlaying = false;
+let isDrivingMode = false;
+
+
+
+let waitingForCommand = false;
+
+
+// ================= LOAD SONGS =================
+async function loadSong() {
+
+    const snapshot = await db.collection("media").get();
+
+    playlist = [];
+
+    snapshot.forEach((doc) => {
+        playlist.push(doc.data());
+    });
+
+    if (playlist.length === 0)
+        return;
+
+    // Find the clicked song from URL
+    currentIndex = playlist.findIndex(
+        song => song.youtubeId === id
+    );
+
+    // If song not found (voice search etc.)
+    if (currentIndex < 0)
+        currentIndex = 0;
+
+    loadCurrentSong();
+
+}
+
+        function loadCurrentSong() {
+
+            currentData = playlist[currentIndex];
+
+            if (!currentData)
+                return;
+
+            currentVideoId = currentData.youtubeId;
+
+            updateUI(
+                currentData.title,
+                currentData.artist,
+                currentData.thumbnail
+            );
+
+            if (player) {
+
+                console.log("PLAYER =", player);
+
+                console.log("LOAD =", player.loadVideoById);
+
+                console.log("TYPE =", typeof player.loadVideoById);
+
+                player.loadVideoById(currentVideoId);
+
+            }
+
+        }
+
+        function updateUI(title, artist, thumb) {
+
+            document.getElementById("title").innerText =
+                title;
+
+            document.getElementById("artist").innerText =
+                artist;
+
+            document.getElementById("album").src =
+                thumb;
+
+            document.getElementById("bg").style.backgroundImage =
+                `url('${thumb}')`;
+
+        }
+
+        // YouTube Player
+        window.onYouTubeIframeAPIReady = function () {
+            player = new YT.Player('youtube-player', {
+                height: '1', width: '1',
+                videoId: "",
+                playerVars: {
+                    autoplay: 1,
+                    playsinline: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    onReady: () => {
+
+                        if (playlist.length > 0) {
+
+                            loadCurrentSong();
+
+                        }
+
+                    },
+                    onStateChange: (e) => {
+
+                        if (e.data == YT.PlayerState.PLAYING) {
+
+                            isPlaying = true;
+
+                            document.getElementById("playBtn").innerHTML =
+                                '<i class="fa-solid fa-pause"></i>';
+
+                            document.getElementById("playerCard").classList.add("playing");
+
+                        }
+
+                        if (e.data == YT.PlayerState.PAUSED) {
+
+                            isPlaying = false;
+
+                            document.getElementById("playBtn").innerHTML =
+                                '<i class="fa-solid fa-play"></i>';
+
+                            document.getElementById("playerCard").classList.remove("playing");
+
+                        }
+
+                        if (e.data === YT.PlayerState.ENDED) {
+
+                            forwardSong();
+
+                        }
+
+                    }
+                }
+            });
+        };
+
+        function updateProgress() {
+
+            if (!player) return;
+
+            if (typeof player.getCurrentTime !== "function") return;
+
+            if (typeof player.getDuration !== "function") return;
+
+            let current;
+            let duration;
+
+            try {
+
+                current = player.getCurrentTime();
+                duration = player.getDuration();
+
+            } catch (e) {
+                return;
+            }
+
+            if (duration > 0) {
+
+                document.getElementById("seekBar").value =
+                    (current / duration) * 100;
+
+                document.getElementById("currentTime").innerText =
+                    formatTime(current);
+
+                document.getElementById("duration").innerText =
+                    formatTime(duration);
+
+            }
+
+        }
+
+        function formatTime(time) {
+            const mins = Math.floor(time / 60);
+            const secs = Math.floor(time % 60);
+            return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+        }
+
+        function togglePlay() {
+
+            if (!player) return;
+
+            if (isPlaying) {
+
+                player.pauseVideo();
+
+            } else {
+
+                player.playVideo();
+
+            }
+
+        }
+
+        function restartSong() {
+
+            if (playlist.length === 0)
+                return;
+
+            currentIndex--;
+
+            if (currentIndex < 0)
+                currentIndex = playlist.length - 1;
+
+            loadCurrentSong();
+
+        }
+        function forwardSong() {
+
+            if (playlist.length === 0)
+                return;
+
+            currentIndex++;
+
+            if (currentIndex >= playlist.length)
+                currentIndex = 0;
+
+            loadCurrentSong();
+
+        }
+        function goHome() { window.location.href = 'index.html'; }
+
+        // ================== DRIVING MODE ==================
+        // ================== DRIVING MODE ==================
+
+
+        function toggleDrivingMode() {
+
+    isDrivingMode = !isDrivingMode;
+
+    const btn = document.getElementById("drivingBtn");
+
+    if (isDrivingMode) {
+
+        btn.classList.add("active");
+        btn.innerHTML = '<i class="fa-solid fa-car"></i> ON';
+
+        speak("Driving mode activated");
+
+        startVoice();
+
+    } else {
+
+        btn.classList.remove("active");
+        btn.innerHTML = '<i class="fa-solid fa-car"></i> Drive';
+
+        if (recognition) {
+            recognition.stop();
+        }
+
+        speak("Driving mode disabled");
+    }
+}
+        
+
+        function startVoice() {
+
+    // Prevent multiple recognizers
+    if (recognition) {
+        return;
+    }
+
+    const SR =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SR) {
+        alert("Speech Recognition is not supported in this browser.");
+        return;
+    }
+
+    recognition = new SR();
+
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+
+        console.log("🎤 Listening...");
+
+    };
+
+    recognition.onresult = (event) => {
+
+        console.log("RESULT RECEIVED");
+
+        let text = event.results[0][0].transcript
+            .toLowerCase()
+            .trim();
+
+        console.log(text);
+
+        // Accept common pronunciations
+        if (
+            text.startsWith("buddy") ||
+            text.startsWith("badi") ||
+            text.startsWith("body") ||
+            text.startsWith("budy")
+        ) {
+
+            text = text
+                .replace(/^buddy/, "")
+                .replace(/^badi/, "")
+                .replace(/^body/, "")
+                .replace(/^budy/, "")
+                .trim();
+
+            processCommand(text);
+
+        } else {
+
+            console.log("Wake word not found.");
+
+        }
+
+    };
+
+    recognition.onerror = (e) => {
+
+    console.log("Speech Error:", e.error);
+
+    recognition = null;
+
+    if (!isDrivingMode) return;
+
+    let delay = 1000;
+
+    if (e.error === "no-speech") {
+        delay = 3000;
+    }
+
+    setTimeout(startVoice, delay);
+
+};
+
+    recognition.onend = () => {
+
+    console.log("Recognition Ended");
+
+    recognition = null;
+
+    if (!isDrivingMode) return;
+
+    setTimeout(startVoice, 1000);
+
+};
+
+    recognition.start();
+
+}
+
+        function processCommand(text) {
+
+            if (text.includes("pause")) {
+
+                if (isPlaying)
+                    togglePlay();
+
+                speak("Paused");
+                return;
+
+            }
+
+            if (text.includes("resume") || text.includes("continue")) {
+
+                if (!isPlaying)
+                    togglePlay();
+
+                speak("Playing");
+                return;
+
+            }
+
+            if (text.includes("next")) {
+
+                forwardSong();
+                speak("Next song");
+                return;
+
+            }
+
+            if (text.includes("previous") || text.includes("back")) {
+
+                restartSong();
+                speak("Previous song");
+                return;
+
+            }
+
+            if (text.includes("stop driving")) {
+
+                toggleDrivingMode();
+                return;
+
+            }
+
+            if (text.includes("play")) {
+
+                let song = text
+                    .replace("please", "")
+                    .replace("play", "")
+                    .replace("song", "")
+                    .trim();
+
+                if (song === "") {
+
+                    if (!isPlaying)
+                        togglePlay();
+
+                    return;
+
+                }
+
+                searchAndPlay(song);
+                return;
+
+            }
+
+            console.log("Unknown command");
+
+        }
+
+        function speak(text) {
+
+            speechSynthesis.cancel();
+
+            const u = new SpeechSynthesisUtterance(text);
+
+            u.lang = "en-IN";
+
+            u.rate = 1;
+
+            speechSynthesis.speak(u);
+
+        }
+
+        async function searchAndPlay(song) {
+
+            try {
+
+                speak("Searching " + song);
+
+                const res = await fetch(
+                    `/search-song?q=${encodeURIComponent(song)}`
+                );
+
+                const data = await res.json();
+
+                if (!data.success) {
+
+                    speak("Song not found");
+                    return;
+
+                }
+
+                currentVideoId = data.videoId;
+
+                updateUI(
+                    data.title,
+                    data.artist,
+                    data.thumbnail
+                );
+
+                if (player) {
+
+                    player.loadVideoById(currentVideoId);
+
+                    setTimeout(() => {
+
+                        player.playVideo();
+
+                    }, 300);
+
+                }
+
+                isPlaying = true;
+
+            } catch (err) {
+
+                console.log(err);
+
+                speak("Search failed");
+
+            }
+
+        }
+
+        document.getElementById("seekBar").addEventListener("input", function () {
+
+            if (!player) return;
+
+            const duration = player.getDuration();
+
+            player.seekTo(
+                duration * (this.value / 100),
+                true
+            );
+
+        });
+
+        setInterval(updateProgress, 1000);
+
+        // Start
+        loadSong();
+        if ("serviceWorker" in navigator) {
+
+    window.addEventListener("load", () => {
+
+        navigator.serviceWorker
+            .register("/service-worker.js")
+            .then(() => console.log("Service Worker Registered"))
+            .catch(console.error);
+
+    });
+
+}
+    </script>
+    
+</body>
+
+</html>
